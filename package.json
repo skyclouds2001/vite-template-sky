@@ -1,0 +1,85 @@
+{
+  "name": "vite-template-sky",
+  "private": true,
+  "version": "0.0.0",
+  "description": "an opinionated vite starter template for vue or react with a cli to generate template project",
+  "keywords": [
+    "template",
+    "project",
+    "vite",
+    "cli"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skyclouds2001/vite-template-sky.git"
+  },
+  "homepage": "https://github.com/skyclouds2001/vite-template-sky#readme",
+  "bugs": {
+    "url": "https://github.com/skyclouds2001/vite-template-sky/issues",
+    "email": "skyclouds2001@163.com"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "skyclouds2001",
+    "email": "skyclouds2001@163.com",
+    "url": "https://skyclouds2001.github.io/"
+  },
+  "contributors": [
+    "skyclouds2001"
+  ],
+  "main": "src/index.ts",
+  "packageManager": "pnpm@8.4.0",
+  "engines": {
+    "node": ">=18.13.0",
+    "npm": ">=9.6.0",
+    "yarn": ">=1.22.0",
+    "pnpm": ">=8.4.0"
+  },
+  "scripts": {
+    "build": "",
+    "lint": "eslint --fix . && prettier --write . && markdownlint --fix **/*.md && tsc --noEmit",
+    "test": "vitest",
+    "clean": "rimraf node_modules && rimraf dist",
+    "changeset": "changeset",
+    "bump": "changeset version",
+    "commit": "cz",
+    "prepare": "is-ci || husky install",
+    "preinstall": "only-allow pnpm"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@changesets/changelog-github": "^0.4.8",
+    "@changesets/cli": "^2.26.2",
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^17.7.0",
+    "@types/node": "^20.6.2",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "@vitest/coverage-v8": "0.34.4",
+    "@vitest/ui": "^0.34.4",
+    "commitizen": "^4.3.0",
+    "cz-conventional-changelog": "^3.3.0",
+    "eslint": "^8.49.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-config-standard-with-typescript": "^39.0.0",
+    "eslint-import-resolver-typescript": "^3.6.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-jsdoc": "^46.8.1",
+    "eslint-plugin-n": "^16.1.0",
+    "eslint-plugin-prettier": "^5.0.0",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-vitest": "^0.3.1",
+    "husky": "^8.0.3",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^14.0.1",
+    "markdownlint": "^0.31.1",
+    "markdownlint-cli": "^0.36.0",
+    "only-allow": "^1.1.1",
+    "pnpm": "8.6.12",
+    "prettier": "^3.0.3",
+    "rimraf": "^5.0.1",
+    "rollup-plugin-visualizer": "^5.9.2",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.4"
+  }
+}
