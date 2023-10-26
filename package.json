@@ -52,6 +52,7 @@
     "pnpm": ">=8.4.0"
   },
   "scripts": {
+    "dev": "rollup --config --bundleConfigAsCjs --watch",
     "build": "rollup --config --bundleConfigAsCjs",
     "lint": "eslint --fix . && prettier --write . && markdownlint --fix **/*.md && tsc --noEmit",
     "test": "vitest",
