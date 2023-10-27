@@ -14,7 +14,7 @@ export default defineConfig({
       format: 'cjs',
     },
   ],
-  external: ['kleur', 'prompts'],
+  external: ['kleur', 'minimist', 'prompts'],
   plugins: [
     babel({
       babelHelpers: 'bundled',
