@@ -1,10 +1,13 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import prompts from 'prompts'
+import kleur from 'kleur'
 import { formatPackageName, formatProjectName } from './format'
 import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
 import { isValidPackageName, isValidProjectName } from './validate'
 import url from 'node:url'
+
+console.log(process.argv.slice(2))
 
 enum Framework {
   Vue = 'Vue',
@@ -44,11 +47,11 @@ void (async function cli() {
           initial: 0,
           choices: [
             {
-              title: 'Vue',
+              title: kleur.green('Vue'),
               value: Framework.Vue,
             },
             {
-              title: 'React',
+              title: kleur.blue('React'),
               value: Framework.React,
             },
           ],
@@ -56,7 +59,7 @@ void (async function cli() {
       ],
       {
         onCancel: () => {
-          throw new Error('Operation cancelled!')
+          throw new Error(`${kleur.red('✖')} Operation cancelled!`)
         },
       }
     )
@@ -79,7 +82,7 @@ void (async function cli() {
       if (overwrite as boolean) {
         clearDir(root)
       } else {
-        throw new Error('Operation cancelled!')
+        throw new Error(`${kleur.red('✖')} Operation cancelled!`)
       }
     }
 
