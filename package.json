@@ -8,8 +8,14 @@
     "vite",
     "cli"
   ],
+  "bin": {
+    "create-template-sky": "index.js"
+  },
   "files": [
-    "dist"
+    "index.js",
+    "dist",
+    "vite-react-template-sky",
+    "vite-vue-template-sky"
   ],
   "publishConfig": {
     "access": "public",

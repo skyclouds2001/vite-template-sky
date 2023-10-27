@@ -106,10 +106,6 @@ void (async function cli() {
         continue
       }
 
-      if (file === 'node_modules') {
-        continue
-      }
-
       copy(path.resolve(templateDir, file), path.resolve(root, file))
     }
 
