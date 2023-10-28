@@ -4,13 +4,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import prompts from 'prompts'
-import { formatPackageName, formatProjectName } from './format'
 import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
 import { isValidPackageName, isValidProjectName } from './validate'
+import { PackageManager, getPackageManager } from './package'
 
 enum Frameworks {
-  Vue = 'Vue',
-  React = 'React',
+  Vue = 'vue',
+  React = 'react',
 }
 
 interface FrameWork {
@@ -34,7 +34,11 @@ const frameworks: Record<Frameworks, FrameWork> = {
 
 const DEFAULT_NAME = 'vite-template-sky'
 
+const logger = global.console
+
 const cwd = process.cwd()
+
+const packageManager = getPackageManager(process.env.npm_config_user_agent ?? '')
 
 const argv = minimist<{
   f?: string
@@ -45,12 +49,16 @@ const argv = minimist<{
 
 void (async function cli() {
   try {
-    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(formatProjectName(argv._[0])) ? formatProjectName(argv._[0]) : null
-    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(formatPackageName(argv._[1])) ? formatPackageName(argv._[1]) : null
+    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._[0] : null
+    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._[1] : null
     const argvFramework = argv.f ?? argv.framework ?? null
 
     let dir = DEFAULT_NAME
-    const { framework, packageName, projectName } = await prompts(
+    const {
+      framework = argvFramework,
+      packageName = argvPackageName,
+      projectName = argvProjectName,
+    } = await prompts(
       [
         {
           type: () => (argvProjectName != null ? null : 'text'),
@@ -59,23 +67,23 @@ void (async function cli() {
           initial: DEFAULT_NAME,
           validate: (name) => isValidProjectName(name),
           onState: (data) => {
-            dir = formatProjectName(data.value)
+            dir = data.value
           },
         },
         {
           type: () => (argvPackageName != null ? null : 'text'),
           name: 'packageName',
           message: 'Package name:',
-          initial: () => (isValidPackageName(formatPackageName(dir)) ? formatPackageName(dir) : DEFAULT_NAME),
+          initial: () => (isValidPackageName(dir) ? dir : DEFAULT_NAME),
           validate: (name) => isValidPackageName(name),
         },
         {
-          type: () => (argvFramework != null ? null : 'select'),
+          type: () => (argvFramework != null && Object.keys(frameworks).includes(argvFramework) ? null : 'select'),
           name: 'framework',
           message: 'Select a framework:',
           initial: 0,
           choices: Object.values(frameworks).map((framework) => ({
-            title: framework.name,
+            title: framework.color(framework.name),
             value: framework.name,
           })),
         },
@@ -88,7 +96,7 @@ void (async function cli() {
     )
 
     // generate the target dictionary path
-    const root = path.join(cwd, formatProjectName(projectName ?? argvProjectName))
+    const root = path.join(cwd, projectName)
 
     // check if the target dictionary is not an empty dictionary
     // if so, prompt to let user decide whether overwrite the target dictionary
@@ -122,15 +130,7 @@ void (async function cli() {
     }
 
     // get the template dictionary name
-    let template: string
-    switch ((framework ?? argvFramework) as Frameworks) {
-      case Frameworks.Vue:
-        template = frameworks[Frameworks.Vue].template
-        break
-      case Frameworks.React:
-        template = frameworks[Frameworks.React].template
-        break
-    }
+    const template = frameworks[framework as Frameworks].template
     const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
 
     // copy template project to target
@@ -142,18 +142,45 @@ void (async function cli() {
       copy(path.resolve(templateDir, file), path.resolve(root, file))
     }
 
-    // overwrite package.json name field
+    // get the package manager name
+
+    // read package.json file content to do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
-    pkg.name = formatPackageName(packageName ?? argvPackageName)
+
+    // overwrite package.json name field
+    pkg.name = packageName
+
+    // write package.json file content to do some edits
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
 
-    // print message
-    console.log('Done.')
+    // print prompt message
+    logger.log()
+    logger.log('Done.')
+    logger.log()
+    logger.log('Now run:')
+    if (cwd !== root) {
+      logger.log(`  cd ${projectName}`)
+    }
+    switch (packageManager) {
+      case PackageManager.PNPM:
+        logger.log('  pnpm install')
+        logger.log('  pnpm dev')
+        break
+      case PackageManager.YARN:
+        logger.log('  yarn')
+        logger.log('  yarn dev')
+        break
+      case PackageManager.NPM:
+        logger.log('  npm install')
+        logger.log('  npm run dev')
+        break
+    }
+    logger.log()
   } catch (error) {
     if (error instanceof Error) {
-      console.log(error.message)
+      logger.error(error.message)
     } else {
-      console.log(error)
+      logger.error(error)
     }
   }
 })()
