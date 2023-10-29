@@ -4,10 +4,10 @@ import path from 'node:path'
 /**
  * files or dictionaries that should ignore in check and execute
  */
-export const IGNORES = ['.git']
+export const IGNORES = ['.git', '.vscode', '.idea', '.fleet']
 
 /**
- * check if the target dictionary empty
+ * check if the target dictionary empty, will ignore those files in ignore list
  * @param dir target dictionary
  * @returns check result
  */
@@ -18,7 +18,7 @@ export function isEmptyDir(dir: string): boolean {
 }
 
 /**
- * clear the target dictionary to empty
+ * clear the target dictionary to empty, will ignore those files in ignore list
  * @param dir target dictionary
  */
 export function clearDir(dir: string): void {
@@ -35,7 +35,7 @@ export function clearDir(dir: string): void {
 }
 
 /**
- * copy the file from the source to the target
+ * copy the file from the source to the target, will ignore those files in ignore list and existed in the target
  * @param src source path
  * @param dest target path
  */
