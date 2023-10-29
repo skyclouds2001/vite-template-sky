@@ -107,7 +107,7 @@ void (async function cli() {
     }
 
     // get the template dictionary name
-    const template = (frameworks.find((f) => f.template === framework) as FrameWork).template
+    const template = (frameworks.find((f) => f.name === framework) as FrameWork).template
     const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
 
     // copy template project to target
