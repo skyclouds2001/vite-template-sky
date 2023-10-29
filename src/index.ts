@@ -7,30 +7,7 @@ import prompts from 'prompts'
 import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
 import { isValidPackageName, isValidProjectName } from './validate'
 import { PackageManager, getPackageManager } from './package'
-
-enum Frameworks {
-  Vue = 'vue',
-  React = 'react',
-}
-
-interface FrameWork {
-  name: Frameworks
-  template: string
-  color: kleur.Color
-}
-
-const frameworks: Record<Frameworks, FrameWork> = {
-  [Frameworks.Vue]: {
-    name: Frameworks.Vue,
-    template: 'vite-vue-template-sky',
-    color: kleur.green,
-  },
-  [Frameworks.React]: {
-    name: Frameworks.React,
-    template: 'vite-react-template-sky',
-    color: kleur.blue,
-  },
-}
+import { type FrameWork, frameworks } from './framework'
 
 const DEFAULT_NAME = 'vite-template-sky'
 
@@ -78,11 +55,11 @@ void (async function cli() {
           validate: (name) => isValidPackageName(name),
         },
         {
-          type: () => (argvFramework != null && Object.keys(frameworks).includes(argvFramework) ? null : 'select'),
+          type: () => (argvFramework != null && frameworks.map((framework) => framework.name).includes(argvFramework) ? null : 'select'),
           name: 'framework',
           message: 'Select a framework:',
           initial: 0,
-          choices: Object.values(frameworks).map((framework) => ({
+          choices: frameworks.map((framework) => ({
             title: framework.color(framework.name),
             value: framework.name,
           })),
@@ -130,7 +107,7 @@ void (async function cli() {
     }
 
     // get the template dictionary name
-    const template = frameworks[framework as Frameworks].template
+    const template = (frameworks.find((f) => f.template === framework) as FrameWork).template
     const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
 
     // copy template project to target
@@ -141,8 +118,6 @@ void (async function cli() {
 
       copy(path.resolve(templateDir, file), path.resolve(root, file))
     }
-
-    // get the package manager name
 
     // read package.json file content to do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))

@@ -1,6 +1,9 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
+/**
+ * files or dictionaries that should ignore in check and execute
+ */
 export const IGNORES = ['.git']
 
 /**
