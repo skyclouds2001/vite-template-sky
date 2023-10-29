@@ -4,10 +4,11 @@ import fs from 'node:fs'
 import path from 'node:path'
 import url from 'node:url'
 import prompts from 'prompts'
+import { simpleGit } from 'simple-git'
+import { frameworks, type FrameWork } from './framework'
 import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
-import { isValidPackageName, isValidProjectName } from './validate'
 import { PackageManager, getPackageManager } from './package'
-import { type FrameWork, frameworks } from './framework'
+import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
 
@@ -112,7 +113,7 @@ void (async function cli() {
 
     // copy template project to target
     for (const file of fs.readdirSync(templateDir)) {
-      if (IGNORES.includes(file) && fs.existsSync(path.resolve(root, file))) {
+      if (IGNORES.includes(file)) {
         continue
       }
 
@@ -127,6 +128,11 @@ void (async function cli() {
 
     // write package.json file content to do some edits
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
+
+    // init git config
+    await simpleGit({
+      baseDir: root,
+    }).init()
 
     // print prompt message
     logger.log()
