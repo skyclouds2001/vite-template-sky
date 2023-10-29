@@ -46,7 +46,7 @@ export function copy(src: string, dest: string): void {
     })
 
     for (const file of fs.readdirSync(src)) {
-      if (IGNORES.includes(file) && fs.existsSync(path.resolve(dest, file))) {
+      if (IGNORES.includes(file)) {
         continue
       }
 
