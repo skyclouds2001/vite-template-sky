@@ -16,13 +16,12 @@ const logger = global.console
 
 const cwd = process.cwd()
 
-const packageManager = getPackageManager(process.env.npm_config_user_agent ?? '')
-
 const argv = minimist<{
   f?: string
   framework?: string
+  pkg?: string
 }>(process.argv.slice(2), {
-  string: ['_', 'f', 'framework'],
+  string: ['_', 'f', 'framework', 'pkg'],
 })
 
 void (async function cli() {
@@ -30,12 +29,14 @@ void (async function cli() {
     const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._[0] : null
     const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._[1] : null
     const argvFramework = argv.f ?? argv.framework ?? null
+    const argvPackageManager = Object.values(PackageManager).includes(argv.pkg as PackageManager) ? argv.pkg : getPackageManager(process.env.npm_config_user_agent ?? '')
 
     let dir = DEFAULT_NAME
     const {
       framework = argvFramework,
       packageName = argvPackageName,
       projectName = argvProjectName,
+      packageManager = argvPackageManager,
     } = await prompts(
       [
         {
@@ -65,6 +66,16 @@ void (async function cli() {
             value: framework.name,
           })),
         },
+        {
+          type: 'select',
+          name: 'packageManager',
+          message: 'Select a package manager:',
+          initial: 0,
+          choices: Object.values(PackageManager).map((pm) => ({
+            title: pm,
+            value: pm,
+          })),
+        },
       ],
       {
         onCancel: () => {
@@ -78,7 +89,7 @@ void (async function cli() {
 
     // check if the target dictionary is not an empty dictionary
     // if so, prompt to let user decide whether overwrite the target dictionary
-    // if user decide to overwrite, clear the target dictionary; or if not, exit the process
+    // if user decide to overwrite, clear the target dictionary; if not, exit the process
     if (fs.existsSync(root) && !isEmptyDir(root)) {
       const { overwrite } = await prompts(
         [
