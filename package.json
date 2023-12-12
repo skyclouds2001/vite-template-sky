@@ -101,7 +101,7 @@
     "eslint-plugin-n": "^16.3.1",
     "eslint-plugin-prettier": "^5.0.1",
     "eslint-plugin-promise": "^6.1.1",
-    "eslint-plugin-vitest": "^0.3.10",
+    "eslint-plugin-vitest": "^0.3.16",
     "husky": "^8.0.3",
     "is-ci": "^3.0.1",
     "lint-staged": "^15.1.0",
