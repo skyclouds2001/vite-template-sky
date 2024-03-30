@@ -1,5 +1,5 @@
 {
-  "name": "vite-template-sky",
+  "name": "@sky-fly/vite-template-sky",
   "version": "0.0.0",
   "description": "an opinionated vite starter template for vue or react with a cli to generate template project",
   "keywords": [
