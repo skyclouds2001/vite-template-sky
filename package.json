@@ -1,6 +1,6 @@
 {
   "name": "@sky-fly/vite-template-sky",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "an opinionated vite starter template for vue or react with a cli to generate template project",
   "keywords": [
     "template",
@@ -13,9 +13,9 @@
   },
   "files": [
     "index.js",
-    "dist",
-    "vite-react-template-sky",
-    "vite-vue-template-sky"
+    "dist/",
+    "vite-react-template-sky/",
+    "vite-vue-template-sky/"
   ],
   "publishConfig": {
     "access": "public",
