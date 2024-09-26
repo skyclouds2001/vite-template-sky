@@ -9,7 +9,7 @@
     "cli"
   ],
   "bin": {
-    "create-vite-template": "index.js"
+    "create-vite-template": "index.mjs"
   },
   "files": [
     "index.js",
