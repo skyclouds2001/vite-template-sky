@@ -12,6 +12,8 @@ import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
 
+const OVERRIDE_NAME_FILE = ['./README.md']
+
 const logger = global.console
 
 const cwd = process.cwd()
@@ -131,11 +133,24 @@ void (async function cli() {
       copy(path.resolve(templateDir, file), path.resolve(root, file))
     }
 
+    // travel each file that need to update package name
+    for (const file of OVERRIDE_NAME_FILE) {
+      // read file content
+      let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+
+      // overwrite the name field
+      content = content.replaceAll(DEFAULT_NAME, packageName)
+
+      // write file content
+      fs.writeFileSync(path.resolve(root, file), content)
+    }
+
     // read package.json file content to do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
     // overwrite package.json name field
     pkg.name = packageName
+    pkg.version = '0.0.0'
 
     // write package.json file content to do some edits
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
