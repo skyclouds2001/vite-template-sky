@@ -4,23 +4,30 @@ An opinionated vite starter template for vue or react with a cli to generate tem
 
 ## Usage
 
-Using npm
+Using npm.
 
 ```sh
 npx @sky-fly/vite-template
 ```
 
-Using yarn
+Can passing one cli option as the project name, this will be used to decide the folder where the generated project template will be placed.
 
 ```sh
-yarn dlx @sky-fly/vite-template
+npx @sky-fly/vite-template project
 ```
 
-Using pnpm
+Can also passing another cli option as the package name, this will be used to overwrite in the project.
 
 ```sh
-pnpm dlx @sky-fly/vite-template
+npx @sky-fly/vite-template project project
 ```
+
+Avaiable named cli options is shown below:
+
+| Name | Default | Type | Description |
+| --- | --- | --- | --- |
+| framework/f | - | vue,react | decide the framework the project is intended to use |
+| pkg | - | npm,yarn,pnpm | decide the package manager the project is going to use |
 
 ## Changelog
 
