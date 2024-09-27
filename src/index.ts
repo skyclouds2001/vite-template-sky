@@ -12,23 +12,25 @@ import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
 
+const OVERRIDE_NAME_FILE = ['./README.md']
+
 const logger = global.console
 
 const cwd = process.cwd()
 
 const argv = minimist<{
-  f?: string
   framework?: string
   pkg?: string
 }>(process.argv.slice(2), {
-  string: ['_', 'f', 'framework', 'pkg'],
+  string: ['_', 'framework', 'pkg'],
+  alias: { f: 'framework' },
 })
 
 void (async function cli() {
   try {
-    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._[0] : null
-    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._[1] : null
-    const argvFramework = argv.framework ?? argv.f ?? null
+    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._.at(0) : null
+    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._.at(1) : null
+    const argvFramework = argv.framework ?? null
     const argvPackageManager = Object.values(PackageManager).includes(argv.pkg as PackageManager) ? argv.pkg : getPackageManager(process.env.npm_config_user_agent ?? '')
 
     let dir = DEFAULT_NAME
@@ -131,11 +133,24 @@ void (async function cli() {
       copy(path.resolve(templateDir, file), path.resolve(root, file))
     }
 
+    // travel each file that need to update package name
+    for (const file of OVERRIDE_NAME_FILE) {
+      // read file content
+      let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+
+      // overwrite the name field
+      content = content.replaceAll(DEFAULT_NAME, packageName)
+
+      // write file content
+      fs.writeFileSync(path.resolve(root, file), content)
+    }
+
     // read package.json file content to do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
     // overwrite package.json name field
     pkg.name = packageName
+    pkg.version = '0.0.0'
 
     // write package.json file content to do some edits
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
