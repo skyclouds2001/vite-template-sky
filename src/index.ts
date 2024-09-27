@@ -6,7 +6,7 @@ import url from 'node:url'
 import prompts from 'prompts'
 import { simpleGit } from 'simple-git'
 import { frameworks, type FrameWork } from './framework'
-import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
+import { clearDir, copy, isEmptyDir } from './fs'
 import { PackageManager, getPackageManager } from './package'
 import { isValidPackageName, isValidProjectName } from './validate'
 
@@ -125,13 +125,7 @@ void (async function cli() {
     const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
 
     // copy template project to target
-    for (const file of fs.readdirSync(templateDir)) {
-      if (IGNORES.includes(file)) {
-        continue
-      }
-
-      copy(path.resolve(templateDir, file), path.resolve(root, file))
-    }
+    copy(templateDir, root)
 
     // travel each file that need to update package name
     for (const file of OVERRIDE_NAME_FILE) {
