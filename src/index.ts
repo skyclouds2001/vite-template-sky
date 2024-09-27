@@ -28,7 +28,7 @@ void (async function cli() {
   try {
     const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._[0] : null
     const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._[1] : null
-    const argvFramework = argv.f ?? argv.framework ?? null
+    const argvFramework = argv.framework ?? argv.f ?? null
     const argvPackageManager = Object.values(PackageManager).includes(argv.pkg as PackageManager) ? argv.pkg : getPackageManager(process.env.npm_config_user_agent ?? '')
 
     let dir = DEFAULT_NAME
@@ -71,9 +71,9 @@ void (async function cli() {
           name: 'packageManager',
           message: 'Select a package manager:',
           initial: 0,
-          choices: Object.values(PackageManager).map((pm) => ({
-            title: pm,
-            value: pm,
+          choices: Object.values(PackageManager).map((packageManager) => ({
+            title: packageManager,
+            value: packageManager,
           })),
         },
       ],
