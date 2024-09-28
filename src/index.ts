@@ -6,13 +6,11 @@ import url from 'node:url'
 import prompts from 'prompts'
 import { simpleGit } from 'simple-git'
 import { frameworks, type FrameWork } from './framework'
-import { clearDir, copy, isEmptyDir } from './fs'
+import { clearDir, copy, isEmptyDir, OVERRIDE_FILE } from './fs'
 import { PackageManager, getPackageManager } from './package'
 import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
-
-const OVERRIDE_NAME_FILE = ['./README.md']
 
 const logger = global.console
 
@@ -127,32 +125,58 @@ void (async function cli() {
     // copy template project to target
     copy(templateDir, root)
 
-    // travel each file that need to update package name
-    for (const file of OVERRIDE_NAME_FILE) {
-      // read file content
-      let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+    // init git instance
+    const git = simpleGit({
+      baseDir: root,
+    })
 
-      // overwrite the name field
-      content = content.replaceAll(DEFAULT_NAME, packageName)
+    const { value: userName } = await git.getConfig('user.name')
+    const { value: userEmail } = await git.getConfig('user.email')
 
-      // write file content
-      fs.writeFileSync(path.resolve(root, file), content)
-    }
+    // init project git config
+    git.init()
 
-    // read package.json file content to do some edits
+    Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
+      let value: string
+      switch (key) {
+        case 'name':
+          value = userName ?? ''
+          break
+        case 'email':
+          value = userEmail ?? ''
+          break
+        case 'repository':
+          value = `https://github.com/${userName}/${projectName}`
+          break
+        default:
+          value = ''
+          break
+      }
+
+      // travel each file that need to update package name
+      for (const file of files) {
+        // read file content
+        let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+
+        // overwrite the project name
+        content = content.replaceAll(DEFAULT_NAME, value)
+
+        // write file content
+        fs.writeFileSync(path.resolve(root, file), content)
+      }
+    })
+
+    // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
-    // overwrite package.json name field
+    // overwrite some field of package.json
     pkg.name = packageName
     pkg.version = '0.0.0'
+    pkg.description = ''
+    pkg.keywords = []
 
-    // write package.json file content to do some edits
+    // write edited package.json file content
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
-
-    // init git config
-    await simpleGit({
-      baseDir: root,
-    }).init()
 
     // print prompt message
     logger.log()

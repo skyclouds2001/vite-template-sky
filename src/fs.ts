@@ -12,6 +12,15 @@ export const IGNORE_CHECK = ['.git', '.vscode', '.idea', '.fleet']
 export const IGNORE_COPY = ['.git', 'node_modules', 'dist', '_']
 
 /**
+ * files that should override project information (exclude ./package.json as it requires additional tasks to execute)
+ */
+export const OVERRIDE_FILE = {
+  name: [],
+  email: [],
+  repository: [],
+}
+
+/**
  * check if the target dictionary empty, will ignore those files in ignore list
  * @param dir target dictionary
  * @returns check result
