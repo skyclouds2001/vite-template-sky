@@ -130,18 +130,17 @@ void (async function cli() {
       baseDir: root,
     })
 
-    const { value: userName } = await git.getConfig('user.name')
-    const { value: userEmail } = await git.getConfig('user.email')
-    const projectRepo = userName != null && packageName != null ? `https://github.com/${userName}/${packageName}` : ''
+    const userName = (await git.getConfig('user.name')).value ?? ''
+    const userEmail = (await git.getConfig('user.email')).value ?? ''
+    const projectRepo = `https://github.com/${userName}/${packageName}`
 
     // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
     // cache some fields of package.json
-    const {
-      name: pkgName,
-      author: { name: authorName, email: authorEmail },
-    } = pkg
+    const pkgName = pkg.name
+    const authorName = pkg.author.name
+    const authorEmail = pkg.author.email
     const pkgRepo = `https://github.com/${authorName}/${pkgName}`
 
     // overwrite some fields of package.json
@@ -152,7 +151,7 @@ void (async function cli() {
     pkg.repository.url = `git+${projectRepo}.git`
     pkg.homepage = `${projectRepo}#readme`
     pkg.bugs.url = `${projectRepo}/issues`
-    pkg.bugs.email = `${projectRepo}/issues`
+    pkg.bugs.email = userEmail
     pkg.author.name = userName
     pkg.author.email = userEmail
     pkg.author.url = `https://${userName}.github.io/`
@@ -167,11 +166,11 @@ void (async function cli() {
           break
         case 'userName':
           source = authorName
-          target = userName ?? ''
+          target = userName
           break
         case 'userEmail':
           source = authorEmail
-          target = userEmail ?? ''
+          target = userEmail
           break
         case 'repository':
           source = pkgRepo
@@ -197,7 +196,7 @@ void (async function cli() {
     })
 
     // init project git config
-    git.init()
+    await git.init()
 
     // write edited package.json file content
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
