@@ -132,7 +132,7 @@ void (async function cli() {
 
     const { value: userName } = await git.getConfig('user.name')
     const { value: userEmail } = await git.getConfig('user.email')
-    const projectRepo = userName != null && projectName != null ? `https://github.com/${userName}/${projectName}` : ''
+    const projectRepo = userName != null && packageName != null ? `https://github.com/${userName}/${packageName}` : ''
 
     // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
@@ -145,7 +145,7 @@ void (async function cli() {
     const pkgRepo = `https://github.com/${authorName}/${pkgName}`
 
     // overwrite some fields of package.json
-    pkg.name = projectName
+    pkg.name = packageName
     pkg.version = '0.0.0'
     pkg.description = ''
     pkg.keywords = []
@@ -161,9 +161,9 @@ void (async function cli() {
     Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
       let source: string, target: string
       switch (key) {
-        case 'projectName':
+        case 'packageName':
           source = pkgName
-          target = projectName
+          target = packageName
           break
         case 'userName':
           source = authorName
