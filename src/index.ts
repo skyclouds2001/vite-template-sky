@@ -132,34 +132,50 @@ void (async function cli() {
 
     const { value: userName } = await git.getConfig('user.name')
     const { value: userEmail } = await git.getConfig('user.email')
+    const projectRepo = userName != null && projectName != null ? `https://github.com/${userName}/${projectName}` : ''
 
     // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
-    // overwrite some field of package.json
-    pkg.name = packageName
+    // cache some fields of package.json
+    const {
+      name: pkgName,
+      author: { name: authorName, email: authorEmail },
+    } = pkg
+    const pkgRepo = `https://github.com/${authorName}/${pkgName}`
+
+    // overwrite some fields of package.json
+    pkg.name = projectName
     pkg.version = '0.0.0'
     pkg.description = ''
     pkg.keywords = []
+    pkg.repository.url = `git+${projectRepo}.git`
+    pkg.homepage = `${projectRepo}#readme`
+    pkg.bugs.url = `${projectRepo}/issues`
+    pkg.bugs.email = `${projectRepo}/issues`
+    pkg.author.name = userName
+    pkg.author.email = userEmail
+    pkg.author.url = `https://${userName}.github.io/`
+    pkg.contributors = [userName]
 
     Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
       let source: string, target: string
       switch (key) {
         case 'projectName':
-          source = pkg.name
+          source = pkgName
           target = projectName
           break
         case 'userName':
-          source = pkg.author.name
+          source = authorName
           target = userName ?? ''
           break
         case 'userEmail':
-          source = pkg.author.email
+          source = authorEmail
           target = userEmail ?? ''
           break
         case 'repository':
-          source = `https://github.com/${pkg.author.name}/${projectName}`
-          target = userName != null && projectName != null ? `https://github.com/${userName}/${projectName}` : ''
+          source = pkgRepo
+          target = projectRepo
           break
         default:
           source = ''
