@@ -12,12 +12,35 @@ export const IGNORE_CHECK = ['.git', '.vscode', '.idea', '.fleet']
 export const IGNORE_COPY = ['.git', 'node_modules', 'dist', '_']
 
 /**
- * files that should override project information (exclude ./package.json as it requires additional tasks to execute)
+ * files that should override project information (exclude package.json as it requires additional tasks to execute and README.md as it is not intended to edit)
  */
 export const OVERRIDE_FILE = {
-  name: [],
-  email: [],
-  repository: [],
+  userName: [
+    '.all-contributorsrc',
+    'Dockerfile',
+    'index.html',
+    'LICENSE',
+    '.changeset/config.json',
+    '.github/dependabot.yml',
+    '.github/ISSUE_TEMPLATE/bug-report.md',
+    '.github/ISSUE_TEMPLATE/feature-request.md',
+    '.github/ISSUE_TEMPLATE/other.md',
+    '.github/workflows/ci.yml',
+    '.github/workflows/labeler.yml',
+    '.github/workflows/new-contributor.yml',
+    '.github/workflows/project-automate.yml',
+    '.github/workflows/release.yml',
+    '.github/workflows/stale.yml',
+  ],
+  userEmail: [
+    'CODE_OF_CONDUCT.md',
+    'Dockerfile',
+    'index.html',
+    'SECURITY.md',
+  ],
+  repository: [
+    '.github/workflows/release.yml',
+  ],
 }
 
 /**

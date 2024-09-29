@@ -133,23 +133,33 @@ void (async function cli() {
     const { value: userName } = await git.getConfig('user.name')
     const { value: userEmail } = await git.getConfig('user.email')
 
-    // init project git config
-    git.init()
+    // read package.json file content to get infos and do some edits
+    const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
+
+    // overwrite some field of package.json
+    pkg.name = packageName
+    pkg.version = '0.0.0'
+    pkg.description = ''
+    pkg.keywords = []
 
     Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
-      let value: string
+      let source: string, target: string
       switch (key) {
-        case 'name':
-          value = userName ?? ''
+        case 'userName':
+          source = pkg.author.name
+          target = userName ?? ''
           break
-        case 'email':
-          value = userEmail ?? ''
+        case 'userEmail':
+          source = pkg.author.email
+          target = userEmail ?? ''
           break
         case 'repository':
-          value = `https://github.com/${userName}/${projectName}`
+          source = `https://github.com/${pkg.author.name}/${projectName}`
+          target = `https://github.com/${userName}/${projectName}`
           break
         default:
-          value = ''
+          source = ''
+          target = ''
           break
       }
 
@@ -159,21 +169,15 @@ void (async function cli() {
         let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
 
         // overwrite the project name
-        content = content.replaceAll(DEFAULT_NAME, value)
+        content = content.replaceAll(source, target)
 
         // write file content
         fs.writeFileSync(path.resolve(root, file), content)
       }
     })
 
-    // read package.json file content to get infos and do some edits
-    const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
-
-    // overwrite some field of package.json
-    pkg.name = packageName
-    pkg.version = '0.0.0'
-    pkg.description = ''
-    pkg.keywords = []
+    // init project git config
+    git.init()
 
     // write edited package.json file content
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
