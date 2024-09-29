@@ -145,6 +145,10 @@ void (async function cli() {
     Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
       let source: string, target: string
       switch (key) {
+        case 'projectName':
+          source = pkg.name
+          target = projectName
+          break
         case 'userName':
           source = pkg.author.name
           target = userName ?? ''
@@ -155,7 +159,7 @@ void (async function cli() {
           break
         case 'repository':
           source = `https://github.com/${pkg.author.name}/${projectName}`
-          target = `https://github.com/${userName}/${projectName}`
+          target = userName != null && projectName != null ? `https://github.com/${userName}/${projectName}` : ''
           break
         default:
           source = ''
