@@ -33,9 +33,9 @@ void (async function cli() {
 
     let dir = DEFAULT_NAME
     const {
-      framework = argvFramework,
-      packageName = argvPackageName,
       projectName = argvProjectName,
+      packageName = argvPackageName,
+      framework = argvFramework,
       packageManager = argvPackageManager,
     } = await prompts(
       [
@@ -138,10 +138,12 @@ void (async function cli() {
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
     // cache some fields of package.json
-    const pkgName = pkg.name
-    const authorName = pkg.author.name
-    const authorEmail = pkg.author.email
-    const pkgRepo = `https://github.com/${authorName}/${pkgName}`
+    const _packageName = pkg.name
+    const _userName = pkg.author.name
+    const _userEmail = pkg.author.email
+    const _projectRepo = `https://github.com/${_userName}/${_packageName}`
+    const _projectDesc = pkg.description
+    const _projectKeywords = pkg.keywords.join(',')
 
     // overwrite some fields of package.json
     pkg.name = packageName
@@ -161,20 +163,28 @@ void (async function cli() {
       let source: string, target: string
       switch (key) {
         case 'packageName':
-          source = pkgName
+          source = _packageName
           target = packageName
           break
         case 'userName':
-          source = authorName
+          source = _userName
           target = userName
           break
         case 'userEmail':
-          source = authorEmail
+          source = _userEmail
           target = userEmail
           break
         case 'repository':
-          source = pkgRepo
+          source = _projectRepo
           target = projectRepo
+          break
+        case 'description':
+          source = _projectDesc
+          target = ''
+          break
+        case 'keywords':
+          source = _projectKeywords
+          target = ''
           break
         default:
           source = ''
@@ -207,13 +217,6 @@ void (async function cli() {
     acs.projectOwner = userName
     acs.contributors = []
     fs.writeFileSync(path.resolve(root, '.all-contributorsrc'), JSON.stringify(acs, null, 2))
-
-    // override site.webmanifest file content
-    const swm = JSON.parse(fs.readFileSync(path.resolve(root, 'public/site.webmanifest'), 'utf-8'))
-    swm.name = packageName
-    swm.short_name = packageName
-    swm.description = ''
-    fs.writeFileSync(path.resolve(root, 'public/site.webmanifest'), JSON.stringify(swm, null, 2))
 
     // print prompt message
     logger.log()
