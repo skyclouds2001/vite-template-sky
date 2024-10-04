@@ -27,3 +27,12 @@ export function getPackageManager(userAgent: string): PackageManager {
 
   return pkg
 }
+
+/**
+ * validate if a package manager name is valid and supported one
+ * @param name package manager name
+ * @returns validation result
+ */
+export function isValidPackageManagerName(name: string): boolean {
+  return Object.values(PackageManager).includes(name as PackageManager)
+}

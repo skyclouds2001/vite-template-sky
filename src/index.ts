@@ -5,9 +5,9 @@ import path from 'node:path'
 import url from 'node:url'
 import prompts from 'prompts'
 import { simpleGit } from 'simple-git'
-import { frameworks, type FrameWork } from './framework'
 import { clearDir, copy, isEmptyDir, OVERRIDE_FILE } from './fs'
-import { PackageManager, getPackageManager } from './package'
+import { PackageManager, getPackageManager, isValidPackageManagerName } from './package'
+import { isValidTemplateName, templates, type Template } from './template'
 import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
@@ -16,26 +16,29 @@ const logger = global.console
 
 const cwd = process.cwd()
 
-const argv = minimist<{
-  framework?: string
-  pkg?: string
+const args = minimist<{
+  template?: string
+  'package-manager'?: string
 }>(process.argv.slice(2), {
-  string: ['_', 'framework', 'pkg'],
-  alias: { f: 'framework' },
+  string: ['_', 'template', 'package-manager'],
+  alias: {
+    template: 't',
+    'package-manager': 'p',
+  },
 })
 
 void (async function cli() {
   try {
-    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._.at(0) : null
-    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._.at(1) : null
-    const argvFramework = argv.framework ?? null
-    const argvPackageManager = Object.values(PackageManager).includes(argv.pkg as PackageManager) ? argv.pkg : getPackageManager(process.env.npm_config_user_agent ?? '')
+    const argvProjectName = typeof args._[0] === 'string' && isValidProjectName(args._[0]) ? args._.at(0) : null
+    const argvPackageName = typeof args._[1] === 'string' && isValidPackageName(args._[1]) ? args._.at(1) : null
+    const argvTemplate = typeof args.template === 'string' && isValidTemplateName(args.template) ? args.template : null
+    const argvPackageManager = typeof args['package-manager'] === 'string' && isValidPackageManagerName(args['package-manager']) ? args['package-manager'] : null
 
     let dir = DEFAULT_NAME
     const {
       projectName = argvProjectName,
       packageName = argvPackageName,
-      framework = argvFramework,
+      template = argvTemplate,
       packageManager = argvPackageManager,
     } = await prompts(
       [
@@ -57,20 +60,23 @@ void (async function cli() {
           validate: (name) => isValidPackageName(name),
         },
         {
-          type: () => (argvFramework != null && frameworks.map((framework) => framework.name).includes(argvFramework) ? null : 'select'),
-          name: 'framework',
-          message: 'Select a framework:',
+          type: () => (argvTemplate != null ? null : 'select'),
+          name: 'template',
+          message: 'Select a template:',
           initial: 0,
-          choices: frameworks.map((framework) => ({
-            title: framework.color(framework.name),
-            value: framework.name,
+          choices: templates.map((template) => ({
+            title: template.color(template.name),
+            value: template.name,
           })),
         },
         {
-          type: 'select',
+          type: () => (argvPackageManager != null ? null : 'select'),
           name: 'packageManager',
           message: 'Select a package manager:',
-          initial: 0,
+          initial: Math.max(
+            Object.values(PackageManager).findIndex((v) => v === getPackageManager(process.env.npm_config_user_agent ?? '')),
+            0
+          ),
           choices: Object.values(PackageManager).map((packageManager) => ({
             title: packageManager,
             value: packageManager,
@@ -119,8 +125,7 @@ void (async function cli() {
     }
 
     // get the template dictionary name
-    const template = (frameworks.find((f) => f.name === framework) as FrameWork).template
-    const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
+    const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', (templates.find((f) => f.name === template) as Template).template)
 
     // copy template project to target
     copy(templateDir, root)
