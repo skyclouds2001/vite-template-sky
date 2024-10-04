@@ -198,8 +198,22 @@ void (async function cli() {
     // init project git config
     await git.init()
 
-    // write edited package.json file content
+    // override package.json file content
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
+
+    // override .all-contributorsrc file content
+    const acs = JSON.parse(fs.readFileSync(path.resolve(root, '.all-contributorsrc'), 'utf-8'))
+    acs.projectName = packageName
+    acs.projectOwner = userName
+    acs.contributors = []
+    fs.writeFileSync(path.resolve(root, '.all-contributorsrc'), JSON.stringify(acs, null, 2))
+
+    // override site.webmanifest file content
+    const swm = JSON.parse(fs.readFileSync(path.resolve(root, 'public/site.webmanifest'), 'utf-8'))
+    swm.name = packageName
+    swm.short_name = packageName
+    swm.description = ''
+    fs.writeFileSync(path.resolve(root, 'public/site.webmanifest'), JSON.stringify(swm, null, 2))
 
     // print prompt message
     logger.log()
