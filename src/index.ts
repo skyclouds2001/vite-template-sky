@@ -140,7 +140,7 @@ async function cli() {
 
     const userName = (await git.getConfig('user.name')).value ?? ''
     const userEmail = (await git.getConfig('user.email')).value ?? ''
-    const projectRepo = `https://github.com/${userName}/${packageName}`
+    const projectRepo = userName && userEmail ? `https://github.com/${userName}/${packageName}` : ''
 
     // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
@@ -195,9 +195,7 @@ async function cli() {
           target = ''
           break
         default:
-          source = ''
-          target = ''
-          break
+          throw new Error(`${kleur.red('✖')} Unhandled key "${key}" in OVERRIDE_FILE.`)
       }
 
       // travel each file that need to update package name
