@@ -10,7 +10,7 @@ Using npm to initialize a project
 npx @sky-fly/vite-template
 ```
 
-You can passing one CLI option as the project name, which will be used to decide the folder name where the generated project template will be placed.
+You can pass one CLI option as the project name, which will be used to decide the folder name where the generated project template will be placed.
 
 ```sh
 npx @sky-fly/vite-template project
