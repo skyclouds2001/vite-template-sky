@@ -18,6 +18,6 @@ export default defineConfig({
       sourcemap: true,
     },
   ],
-  external: [],
+  external: ['kleur', 'minimist', 'prompts', 'simple-git'],
   plugins: [nodeResolve(), commonjs(), typescript(), terser()],
 })
