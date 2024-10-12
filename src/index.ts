@@ -5,39 +5,43 @@ import path from 'node:path'
 import url from 'node:url'
 import prompts from 'prompts'
 import { simpleGit } from 'simple-git'
-import { frameworks, type FrameWork } from './framework'
-import { IGNORES, clearDir, copy, isEmptyDir } from './fs'
-import { PackageManager, getPackageManager } from './package'
+import { clearDir, copy, isEmptyDir, OVERRIDE_FILE } from './fs'
+import { PackageManager, getPackageManager, isValidPackageManagerName } from './package'
+import { isValidTemplateName, templates, type Template } from './template'
 import { isValidPackageName, isValidProjectName } from './validate'
 
 const DEFAULT_NAME = 'vite-template-sky'
-
-const OVERRIDE_NAME_FILE = ['./README.md']
 
 const logger = global.console
 
 const cwd = process.cwd()
 
-const argv = minimist<{
-  framework?: string
-  pkg?: string
+const args = minimist<{
+  template?: string
+  'package-manager'?: string
 }>(process.argv.slice(2), {
-  string: ['_', 'framework', 'pkg'],
-  alias: { f: 'framework' },
+  string: ['_', 'template', 'package-manager'],
+  alias: {
+    template: 't',
+    'package-manager': 'p',
+  },
 })
 
-void (async function cli() {
+/**
+ *
+ */
+async function cli() {
   try {
-    const argvProjectName = typeof argv._[0] === 'string' && isValidProjectName(argv._[0]) ? argv._.at(0) : null
-    const argvPackageName = typeof argv._[1] === 'string' && isValidPackageName(argv._[1]) ? argv._.at(1) : null
-    const argvFramework = argv.framework ?? null
-    const argvPackageManager = Object.values(PackageManager).includes(argv.pkg as PackageManager) ? argv.pkg : getPackageManager(process.env.npm_config_user_agent ?? '')
+    const argvProjectName = typeof args._[0] === 'string' && isValidProjectName(args._[0]) ? args._.at(0) : null
+    const argvPackageName = typeof args._[1] === 'string' && isValidPackageName(args._[1]) ? args._.at(1) : null
+    const argvTemplate = typeof args.template === 'string' && isValidTemplateName(args.template) ? args.template : null
+    const argvPackageManager = typeof args['package-manager'] === 'string' && isValidPackageManagerName(args['package-manager']) ? args['package-manager'] : null
 
     let dir = DEFAULT_NAME
     const {
-      framework = argvFramework,
-      packageName = argvPackageName,
       projectName = argvProjectName,
+      packageName = argvPackageName,
+      template = argvTemplate,
       packageManager = argvPackageManager,
     } = await prompts(
       [
@@ -59,23 +63,26 @@ void (async function cli() {
           validate: (name) => isValidPackageName(name),
         },
         {
-          type: () => (argvFramework != null && frameworks.map((framework) => framework.name).includes(argvFramework) ? null : 'select'),
-          name: 'framework',
-          message: 'Select a framework:',
+          type: () => (argvTemplate != null ? null : 'select'),
+          name: 'template',
+          message: 'Select a template:',
           initial: 0,
-          choices: frameworks.map((framework) => ({
-            title: framework.color(framework.name),
-            value: framework.name,
+          choices: templates.map((template) => ({
+            title: template.color(template.name),
+            value: template.name,
           })),
         },
         {
-          type: 'select',
+          type: () => (argvPackageManager != null ? null : 'select'),
           name: 'packageManager',
           message: 'Select a package manager:',
-          initial: 0,
-          choices: Object.values(PackageManager).map((pm) => ({
-            title: pm,
-            value: pm,
+          initial: Math.max(
+            Object.values(PackageManager).findIndex((v) => v === getPackageManager(process.env.npm_config_user_agent ?? '')),
+            0
+          ),
+          choices: Object.values(PackageManager).map((packageManager) => ({
+            title: packageManager,
+            value: packageManager,
           })),
         },
       ],
@@ -121,44 +128,101 @@ void (async function cli() {
     }
 
     // get the template dictionary name
-    const template = (frameworks.find((f) => f.name === framework) as FrameWork).template
-    const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', template)
+    const templateDir = path.resolve(url.fileURLToPath(import.meta.url), '../..', (templates.find((f) => f.name === template) as Template).template)
 
     // copy template project to target
-    for (const file of fs.readdirSync(templateDir)) {
-      if (IGNORES.includes(file)) {
-        continue
-      }
+    copy(templateDir, root)
 
-      copy(path.resolve(templateDir, file), path.resolve(root, file))
-    }
+    // init git instance
+    const git = simpleGit({
+      baseDir: root,
+    })
 
-    // travel each file that need to update package name
-    for (const file of OVERRIDE_NAME_FILE) {
-      // read file content
-      let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+    const userName = (await git.getConfig('user.name')).value ?? ''
+    const userEmail = (await git.getConfig('user.email')).value ?? ''
+    const projectRepo = userName && userEmail ? `https://github.com/${userName}/${packageName}` : ''
 
-      // overwrite the name field
-      content = content.replaceAll(DEFAULT_NAME, packageName)
-
-      // write file content
-      fs.writeFileSync(path.resolve(root, file), content)
-    }
-
-    // read package.json file content to do some edits
+    // read package.json file content to get infos and do some edits
     const pkg = JSON.parse(fs.readFileSync(path.resolve(root, 'package.json'), 'utf-8'))
 
-    // overwrite package.json name field
+    // cache some fields of package.json
+    const _packageName = pkg.name
+    const _userName = pkg.author.name
+    const _userEmail = pkg.author.email
+    const _projectRepo = `https://github.com/${_userName}/${_packageName}`
+    const _projectDesc = pkg.description
+    const _projectKeywords = pkg.keywords.join(',')
+
+    // overwrite some fields of package.json
     pkg.name = packageName
     pkg.version = '0.0.0'
+    pkg.description = ''
+    pkg.keywords = []
+    pkg.repository.url = `git+${projectRepo}.git`
+    pkg.homepage = `${projectRepo}#readme`
+    pkg.bugs.url = `${projectRepo}/issues`
+    pkg.bugs.email = userEmail
+    pkg.author.name = userName
+    pkg.author.email = userEmail
+    pkg.author.url = `https://${userName}.github.io/`
+    pkg.contributors = [userName]
 
-    // write package.json file content to do some edits
+    Object.entries(OVERRIDE_FILE).forEach(([key, files]) => {
+      let source: string, target: string
+      switch (key) {
+        case 'packageName':
+          source = _packageName
+          target = packageName
+          break
+        case 'userName':
+          source = _userName
+          target = userName
+          break
+        case 'userEmail':
+          source = _userEmail
+          target = userEmail
+          break
+        case 'repository':
+          source = _projectRepo
+          target = projectRepo
+          break
+        case 'description':
+          source = _projectDesc
+          target = ''
+          break
+        case 'keywords':
+          source = _projectKeywords
+          target = ''
+          break
+        default:
+          throw new Error(`${kleur.red('✖')} Unhandled key "${key}" in OVERRIDE_FILE.`)
+      }
+
+      // travel each file that need to update package name
+      for (const file of files) {
+        // read file content
+        let content = fs.readFileSync(path.resolve(root, file), 'utf-8')
+
+        // overwrite the project name
+        content = content.replaceAll(source, target)
+
+        // write file content
+        fs.writeFileSync(path.resolve(root, file), content)
+      }
+    })
+
+    // init project git config
+    await git.init()
+
+    // override package.json file content
     fs.writeFileSync(path.resolve(root, 'package.json'), JSON.stringify(pkg, null, 2))
 
-    // init git config
-    await simpleGit({
-      baseDir: root,
-    }).init()
+    // override .all-contributorsrc file content
+    const acs = JSON.parse(fs.readFileSync(path.resolve(root, '.all-contributorsrc'), 'utf-8'))
+    acs.projectName = packageName
+    acs.projectOwner = userName
+    acs.contributors = []
+    fs.writeFileSync(path.resolve(root, '.all-contributorsrc'), JSON.stringify(acs, null, 2))
 
     // print prompt message
     logger.log()
@@ -190,4 +254,6 @@ void (async function cli() {
       logger.error(error)
     }
   }
-})()
+}
+
+cli()

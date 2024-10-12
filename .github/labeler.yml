@@ -1,0 +1,17 @@
+system:
+  - changed-files:
+    - any-glob-to-any-file:
+      - .changeset/**
+      - .github/**
+      - .husky/**
+      - '*'
+
+source:
+  - changed-files:
+    - any-glob-to-any-file:
+      - src/**
+
+test:
+  - changed-files:
+    - any-glob-to-any-file:
+      - tests/**
