@@ -27,7 +27,10 @@ const args = minimist<{
   },
 })
 
-void (async function cli() {
+/**
+ *
+ */
+async function cli() {
   try {
     const argvProjectName = typeof args._[0] === 'string' && isValidProjectName(args._[0]) ? args._.at(0) : null
     const argvPackageName = typeof args._[1] === 'string' && isValidPackageName(args._[1]) ? args._.at(1) : null
@@ -253,4 +256,6 @@ void (async function cli() {
       logger.error(error)
     }
   }
-})()
+}
+
+cli()

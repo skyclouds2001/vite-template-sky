@@ -1,10 +1,10 @@
 /**
  * major package managers
  */
-export enum PackageManager {
-  PNPM = 'pnpm',
-  YARN = 'yarn',
-  NPM = 'npm',
+export class PackageManager {
+  static readonly PNPM = 'pnpm'
+  static readonly YARN = 'yarn'
+  static readonly NPM = 'npm'
 }
 
 /**
