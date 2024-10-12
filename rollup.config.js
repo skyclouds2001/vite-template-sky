@@ -1,6 +1,8 @@
 import { defineConfig } from 'rollup'
-import babel from '@rollup/plugin-babel'
+import nodeResolve from '@rollup/plugin-node-resolve'
+import commonjs from '@rollup/plugin-commonjs'
 import typescript from '@rollup/plugin-typescript'
+import terser from '@rollup/plugin-terser'
 
 export default defineConfig({
   input: 'src/index.ts',
@@ -8,23 +10,14 @@ export default defineConfig({
     {
       file: 'dist/index.es.js',
       format: 'es',
+      sourcemap: true,
     },
     {
       file: 'dist/index.cjs.js',
       format: 'cjs',
+      sourcemap: true,
     },
   ],
-  external: ['kleur', 'minimist', 'prompts', 'simple-git'],
-  plugins: [
-    babel({
-      babelHelpers: 'bundled',
-    }),
-    typescript({
-      sourceMap: false,
-      declaration: true,
-      declarationDir: 'dist',
-      rootDir: 'src',
-      exclude: ['node_modules/**/*', 'dist/**/*', 'tests/**/*'],
-    }),
-  ],
+  external: [],
+  plugins: [nodeResolve(), commonjs(), typescript(), terser()],
 })
