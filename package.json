@@ -21,8 +21,12 @@
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
+  "type": "module",
   "main": "./dist/index.cjs.js",
   "module": "./dist/index.es.js",
+  "browser": "./dist/index.umd.js",
+  "unpkg": "./dist/index.umd.js",
+  "jsdelivr": "./dist/index.umd.js",
   "types": "./dist/index.d.ts",
   "typings": "./dist/index.d.ts",
   "exports": {
@@ -58,8 +62,8 @@
     "pnpm": ">=8.4.0"
   },
   "scripts": {
-    "dev": "rollup --config --bundleConfigAsCjs --watch",
-    "build": "rollup --config --bundleConfigAsCjs",
+    "dev": "rollup --config --watch",
+    "build": "rollup --config",
     "lint": "eslint --fix . && prettier --write . && markdownlint --fix **/*.md && tsc --noEmit",
     "test": "vitest",
     "clean": "rimraf node_modules && rimraf dist",
