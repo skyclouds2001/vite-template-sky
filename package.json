@@ -54,6 +54,10 @@
   "contributors": [
     "skyclouds2001"
   ],
+  "funding": {
+    "type": "patreon",
+    "url": "https://www.patreon.com/skyclouds2001"
+  },
   "packageManager": "pnpm@9.11.0",
   "engines": {
     "node": ">=18.13.0",
